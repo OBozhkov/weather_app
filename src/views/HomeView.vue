@@ -63,15 +63,13 @@ export default {
 	methods: {
 		async getData() {
 			this.apiCallIndex++;
-			console.log(this.coords);
+
 			for (var i = this.coords.length - 1; i >= 0; i--) {
 				const urlParams = `onecall?lat=${this.coords[i].lat}&lon=${this.coords[i].long}&units=metric&appid=52b44120ce8d0cfae8c39df0de976bf4`;
 
 				await axios
 					.get(urlParams)
 					.then((response) => {
-						//console.log(response);
-
 						this.coords[i].api_call_duration = response.duration;
 						this.coords[i].tempData = response.data;
 						this.coords[i].loaded = true;
@@ -111,13 +109,11 @@ export default {
 			}
 		},
 		removeLocation(index) {
-			console.log(index);
 			this.coords.splice(index, 1);
 
 			this.updateLocationsInStorage();
 		},
 		updateLocationName(data) {
-			console.log(data);
 			const localStorageItems = JSON.parse(
 				localStorage.getItem('locations')
 			);
@@ -134,6 +130,29 @@ export default {
 				'locations',
 				JSON.stringify(localStorageItems)
 			);
+		},
+		initGoogleLocations() {
+			const google = window.google;
+			const autocomplete = new google.maps.places.Autocomplete(
+				this.$refs['origin']
+			);
+
+			autocomplete.addListener('place_changed', () => {
+				const place = autocomplete.getPlace();
+
+				const updatedCoords = this.coords;
+				updatedCoords.push({
+					name: place.name,
+					lat: place.geometry.location.lat(),
+					long: place.geometry.location.lng(),
+					api_call_duration: 0,
+					loaded: false
+				});
+
+				this.coords = updatedCoords;
+				this.updateLocationsInStorage();
+				this.$refs['origin'].value = '';
+			});
 		}
 	},
 	mounted() {
@@ -142,27 +161,7 @@ export default {
 
 		this.getData();
 
-		const google = window.google;
-		const autocomplete = new google.maps.places.Autocomplete(
-			this.$refs['origin']
-		);
-
-		autocomplete.addListener('place_changed', () => {
-			const place = autocomplete.getPlace();
-
-			const updatedCoords = this.coords;
-			updatedCoords.push({
-				name: place.name,
-				lat: place.geometry.location.lat(),
-				long: place.geometry.location.lng(),
-				api_call_duration: 0,
-				loaded: false
-			});
-
-			this.coords = updatedCoords;
-			this.updateLocationsInStorage();
-			this.$refs['origin'].value = '';
-		});
+		this.initGoogleLocations();
 
 		setInterval(
 			function () {

@@ -76,8 +76,6 @@
 			api call duration
 			<strong>{{ location.api_call_duration }}</strong> ms
 		</p>
-
-		<!-- {{ location.tempData }} -->
 	</div>
 </template>
 
@@ -104,22 +102,17 @@ export default {
 		};
 	},
 	watch: {
-		apiCallIndex: function (newVal, oldVal) {
-			console.log('Prop changed: ', newVal, ' | was: ', oldVal);
+		apiCallIndex: function () {
 			this.isDurationVisible = true;
 			setTimeout(() => (this.isDurationVisible = false), 5000);
 		}
 	},
 	methods: {
 		removeLocation() {
-			console.log('child');
 			this.$emit('deleteLocation');
 		},
 		updatelocationName(event) {
-			console.log(event.target.value);
-
 			if (event.target.value !== this.location.name) {
-				console.log('different');
 				this.$emit('nameUpdate', event.target.value);
 			}
 			this.isNameFieldVisible = false;
@@ -129,28 +122,6 @@ export default {
 		}
 	},
 	mounted() {
-		console.log(999999);
-		console.log(this.location);
-		console.log(this.location.tempData);
-		console.log(this.location.tempData.hourly[0]);
-		// this.loaded = true;
-		this.chartData.labels = [
-			new Date(this.location?.tempData?.hourly[0].dt * 1000),
-			new Date(this.location?.tempData?.hourly[1].dt * 1000),
-			new Date(this.location?.tempData?.hourly[2].dt * 1000),
-			new Date(this.location?.tempData?.hourly[3].dt * 1000)
-		];
-		this.chartData.datasets = [
-			{
-				data: [
-					this.location?.tempData?.hourly[0].temp,
-					this.location?.tempData?.hourly[1].temp,
-					this.location?.tempData?.hourly[2].temp,
-					this.location?.tempData?.hourly[3].temp
-				]
-			}
-		];
-
 		setTimeout(() => (this.isDurationVisible = false), 5000);
 	}
 };

@@ -10,13 +10,6 @@
 <script>
 import { Line as LineChartGenerator } from 'vue-chartjs';
 import {
-	// Chart as ChartJS,
-	// Title,
-	// Tooltip,
-	// Legend,
-	// BarElement,
-	// CategoryScale,
-	// LinearScale
 	Chart as ChartJS,
 	Title,
 	Tooltip,
@@ -28,12 +21,6 @@ import {
 } from 'chart.js';
 
 ChartJS.register(
-	// Title,
-	// Tooltip,
-	// Legend,
-	// BarElement,
-	// CategoryScale,
-	// LinearScale
 	Title,
 	Tooltip,
 	Legend,
@@ -48,15 +35,7 @@ export default {
 	components: { LineChartGenerator },
 	props: {
 		dataChart: { type: Object }
-		//chartData: { type: Object }
 	},
-	// watch: {
-	// 	chartData: function (newVal, oldVal) {
-	// 		// watch it
-	// 		console.log('Prop changed: ', newVal, ' | was: ', oldVal);
-	// 	}
-	// },
-
 	data() {
 		return {
 			chartOptions: {
@@ -69,19 +48,13 @@ export default {
 								return `${parseFloat(label).toFixed(2)}°`;
 							}
 						}
-						// scaleLabel: {
-						// 	display: true,
-						// 	labelString: '1k = 1000'
-						// }
 					}
 				}
 			}
 		};
 	},
-	mounted() {
-		console.log(typeof this.dataChart);
-	}
+	mounted() {}
 };
 </script>
 
-<style lang="css" scoped></style>
+<style lang="scss" scoped></style>
