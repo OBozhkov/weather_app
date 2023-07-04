@@ -10,7 +10,29 @@
 				/>
 			</svg>
 		</button>
-		<h3>name {{ location.name }}</h3>
+
+		<h3 class="name-row">
+			name: &nbsp;
+			<span v-if="!isNameFieldVisible">{{ location.name }}</span>
+			<button
+				v-if="!isNameFieldVisible"
+				class="btn-edit"
+				@click="showNameField"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+					<path
+						d="M7.127 22.562 0 24l1.438-7.128 5.689 5.69zm1.414-1.414L19.769 9.923l-5.69-5.692L2.852 15.458l5.689 5.69zM18.309 0l-2.816 2.817 5.691 5.691L24 5.689 18.309 0z"
+						fill="grey"
+					/>
+				</svg>
+			</button>
+			<input
+				v-if="isNameFieldVisible"
+				type="text"
+				:value="location.name"
+				v-on:keyup.enter="updatelocationName"
+			/>
+		</h3>
 		<h3>Coords lat {{ location.lat }}</h3>
 		<h3>Coords lng {{ location.long }}</h3>
 
@@ -50,7 +72,7 @@
 			<strong> {{ this.location?.tempData?.hourly[11].temp }}° </strong>
 		</p>
 
-		<p>
+		<p class="duration-display" :class="{ hidden: !isDurationVisible }">
 			api call duration
 			<strong>{{ location.api_call_duration }}</strong> ms
 		</p>
@@ -66,26 +88,48 @@ export default {
 	components: { tempChart },
 	props: {
 		location: {
-			type: Object
+			type: Object,
+			required: true
+		},
+		apiCallIndex: {
+			type: Number,
+			required: true
 		}
 	},
 	data() {
 		return {
-			loaded: false,
-			chartData: {}
-			// chartData: {
-			// 	labels: ['January', 'February', 'March'],
-			// 	datasets: [{ data: [40, 20, 12] }]
-			// },
+			chartData: {},
+			isDurationVisible: true,
+			isNameFieldVisible: false
 		};
+	},
+	watch: {
+		apiCallIndex: function (newVal, oldVal) {
+			console.log('Prop changed: ', newVal, ' | was: ', oldVal);
+			this.isDurationVisible = true;
+			setTimeout(() => (this.isDurationVisible = false), 5000);
+		}
 	},
 	methods: {
 		removeLocation() {
 			console.log('child');
 			this.$emit('deleteLocation');
+		},
+		updatelocationName(event) {
+			console.log(event.target.value);
+
+			if (event.target.value !== this.location.name) {
+				console.log('different');
+				this.$emit('nameUpdate', event.target.value);
+			}
+			this.isNameFieldVisible = false;
+		},
+		showNameField() {
+			this.isNameFieldVisible = true;
 		}
 	},
 	mounted() {
+		console.log(999999);
 		console.log(this.location);
 		console.log(this.location.tempData);
 		console.log(this.location.tempData.hourly[0]);
@@ -106,15 +150,25 @@ export default {
 				]
 			}
 		];
+
+		setTimeout(() => (this.isDurationVisible = false), 5000);
 	}
 };
 </script>
 
 <style lang="scss" scoped>
+h3 {
+	text-align: left;
+	padding: 5px 20px;
+	margin-bottom: 0;
+	margin-top: 0;
+}
+
 .card {
 	position: relative;
 	border: 1px solid #000;
 	border-radius: 5px;
+	padding-top: 30px;
 
 	.btn-delete {
 		position: absolute;
@@ -125,5 +179,27 @@ export default {
 		border: none;
 		cursor: pointer;
 	}
+}
+
+.btn-edit {
+	border: none;
+	background: none;
+	margin-left: auto;
+}
+.duration-display {
+	transition: all 0.5s;
+	visibility: visible;
+	opacity: 1;
+	&.hidden {
+		opacity: 0;
+		visibility: visible;
+	}
+}
+.name-row {
+	padding: 5px 20px;
+	display: flex;
+	width: 100%;
+	align-items: center;
+	justify-content: flex-start;
 }
 </style>

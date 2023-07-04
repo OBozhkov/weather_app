@@ -1,16 +1,8 @@
 <template>
 	<div class="home">
-		<input type="text" placeholder="Origin" ref="origin" />
-
-		<img alt="Vue logo" src="../assets/logo.png" />
-
-		<!-- <template v-for="item in this.coords">
-			<span
-				>{{ item.name }} {{ item.lat }} {{ item.long }}
-				{{ item.loaded }}</span
-			>
-			<br />
-		</template> -->
+		<div class="top-bar">
+			<input type="text" placeholder="Choose location" ref="origin" />
+		</div>
 
 		<div>
 			<div class="location-card-holder">
@@ -19,17 +11,21 @@
 						v-if="item.loaded"
 						:location="item"
 						:key="`Location-${item.lat}-${item.lon}`"
+						:apiCallIndex="apiCallIndex"
 						@deleteLocation="removeLocation(index)"
+						@nameUpdate="
+							(data) => updateLocationName({ index, data })
+						"
 					/>
 				</template>
+
+				<h1 v-if="!coords.length">Choose Location</h1>
 			</div>
 		</div>
 	</div>
 </template>
 
 <script>
-// @ is an alias to /src
-
 import LocationCard from '@/components/LocationCard.vue';
 
 export default {
@@ -39,22 +35,23 @@ export default {
 	},
 	data() {
 		return {
+			apiCallIndex: 0,
 			loaded: false,
 			coords: [
-				{
-					name: 'Sofia',
-					lat: '42.70',
-					long: '23.32',
-					api_call_duration: 0,
-					loaded: false
-				},
-				{
-					name: 'Varna',
-					lat: '43.22',
-					long: '27.92',
-					api_call_duration: 0,
-					loaded: false
-				}
+				// {
+				// 	name: 'Sofia',
+				// 	lat: '42.70',
+				// 	long: '23.32',
+				// 	api_call_duration: 0,
+				// 	loaded: false
+				// },
+				// {
+				// 	name: 'Varna',
+				// 	lat: '43.22',
+				// 	long: '27.92',
+				// 	api_call_duration: 0,
+				// 	loaded: false
+				// }
 			]
 		};
 	},
@@ -65,6 +62,7 @@ export default {
 	},
 	methods: {
 		async getData() {
+			this.apiCallIndex++;
 			console.log(this.coords);
 			for (var i = this.coords.length - 1; i >= 0; i--) {
 				const urlParams = `onecall?lat=${this.coords[i].lat}&lon=${this.coords[i].long}&units=metric&appid=52b44120ce8d0cfae8c39df0de976bf4`;
@@ -72,41 +70,14 @@ export default {
 				await axios
 					.get(urlParams)
 					.then((response) => {
-						console.log(response);
-						// const item = {
-						// 	...this.coords[i],
-						// 	api_call_duration: response.duration,
-						// 	tempData: response.data,
-						// 	loaded: true
-						// };
-						// console.log(item);
-						// this.coords[i] = item;
+						//console.log(response);
 
 						this.coords[i].api_call_duration = response.duration;
 						this.coords[i].tempData = response.data;
 						this.coords[i].loaded = true;
-						//return response;
 					})
 					.catch(() => {});
-				//console.log(this.coords[i].name);
-
-				// if (this.coords[i].name === undefined) {
-				// 	await axios
-				// 		.get({
-				// 			url: '?latlng=40.714224,-73.961452&sensor=true&key=AIzaSyCvb_AWfb4ElHlm6D3IlbJEWvRBaQxQOA0',
-				// 			baseURL:
-				// 				'http://maps.googleapis.com/maps/api/geocode/json'
-				// 		})
-				// 		.then((response) => {
-				// 			//console.log(response);
-				// 			this.coords[i].name[response.name];
-				// 		})
-				// 		.catch(() => {});
-				// }
 			}
-
-			// set locations in localstorage
-			//localStorage.setItem('names', JSON.stringify(names));
 		},
 		updateLocationsInStorage() {
 			const sampleLocations = [];
@@ -124,7 +95,7 @@ export default {
 			const storedLocations = JSON.parse(
 				localStorage.getItem('locations')
 			);
-			if (storedLocations.length) {
+			if (storedLocations && storedLocations.length) {
 				const locations = [];
 				for (var i = storedLocations.length - 1; i >= 0; i--) {
 					locations.push({
@@ -135,7 +106,6 @@ export default {
 						loaded: false
 					});
 				}
-				console.log(locations);
 
 				this.coords = locations;
 			}
@@ -145,6 +115,25 @@ export default {
 			this.coords.splice(index, 1);
 
 			this.updateLocationsInStorage();
+		},
+		updateLocationName(data) {
+			console.log(data);
+			const localStorageItems = JSON.parse(
+				localStorage.getItem('locations')
+			);
+
+			const oldName = this.coords[data.index].name;
+			const indexOfOldName = localStorageItems.findIndex(
+				(item) => item.name === oldName
+			);
+
+			localStorageItems[indexOfOldName].name = data.data;
+			this.coords[data.index].name = data.data;
+
+			localStorage.setItem(
+				'locations',
+				JSON.stringify(localStorageItems)
+			);
 		}
 	},
 	mounted() {
@@ -171,16 +160,26 @@ export default {
 			});
 
 			this.coords = updatedCoords;
-
-			//this.getData();
-
 			this.updateLocationsInStorage();
+			this.$refs['origin'].value = '';
 		});
+
+		setInterval(
+			function () {
+				this.getData();
+			}.bind(this),
+			60000
+		);
 	}
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
+h1 {
+	text-align: center;
+	display: block;
+	width: 100%;
+}
 .location-card-holder {
 	display: flex;
 	width: 100%;
@@ -188,6 +187,17 @@ export default {
 	.card {
 		width: calc(33.33% - 30px);
 		margin: 15px;
+	}
+}
+.top-bar {
+	padding: 10px;
+
+	input {
+		width: 100%;
+		max-width: 300px;
+		height: 50px;
+		line-height: 50px;
+		font-size: 20px;
 	}
 }
 </style>
